@@ -1,5 +1,5 @@
 name := "sbt-elastic-beanstalk"
-version := "0.1.0"
+version := "0.2.0"
 organization := "com.ovoenergy"
 organizationName := "OVO Energy"
 scalaVersion := "2.10.6"
@@ -8,8 +8,8 @@ sbtPlugin := true
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.0.6")
 
 libraryDependencies ++= Seq(
-  "com.amazonaws" % "aws-java-sdk-elasticbeanstalk" % "1.10.43",
-  "com.amazonaws" % "aws-java-sdk-s3" % "1.10.43")
+  "com.amazonaws" % "aws-java-sdk-elasticbeanstalk" % "1.10.77",
+  "com.amazonaws" % "aws-java-sdk-s3" % "1.10.77")
 
 credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 publishMavenStyle := true
