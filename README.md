@@ -118,9 +118,9 @@ t2 small instance.
 > set the cgroup configuration value ```memory.memsw.limit_in_bytes``` to
 > double the value passed in via the -m parameter.
 >
-> For this reason we must specify half the amount we actaully want to allocate.
+> For this reason we must specify half the amount we actually want to allocate.
 >
-> The plugin uses memory values defined in [EC2InstanceTypes](src/main/scala/com/ovoenergy/sbt/ebs/EC2IntanceType.scala)
+> The plugin uses memory values defined in [EC2InstanceTypes](src/main/scala/com/ovoenergy/sbt/ebs/EC2InstanceType.scala)
 > which assume that a single application wishes to be allocated all memory
 > available on a given instance.
 >
