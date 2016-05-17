@@ -113,10 +113,10 @@ t2 small instance.
 > In the example above we see that memory is set to 1024MiB. However a T2 Small
 > instance has 2048MiB.
 >
-> The plugin must set memory here to half the amount because this value is
-> passed to the docker run command via the -m option. By default docker will
-> set the cgroup configuration value ```memory.memsw.limit_in_bytes``` to
-> double the value passed in via the -m parameter.
+> The plugin must set the memory value here to half the available amount because
+> this value is passed to the docker run command via the -m option. By default
+> docker will set the cgroup configuration value ```memory.memsw.limit_in_bytes```
+> to double the value passed in via the -m parameter.
 >
 > For this reason we must specify half the amount we actually want to allocate.
 >
