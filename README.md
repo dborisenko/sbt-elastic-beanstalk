@@ -139,3 +139,4 @@ See [sbt-elastic-beanstalk](http://ob-go.ovotech.org.uk/go/tab/pipeline/history/
 * [Elastic Beanstalk - Working With Docker](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create_deploy_docker.html)
 * [Managing Docker Memory Shares](https://goldmann.pl/blog/2014/09/11/resource-management-in-docker/#_example_managing_the_memory_shares_of_a_container)
 * [```cgroups``` Memory Configuration](https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Resource_Management_Guide/sec-memory.html)
+* [Example configuration from sbt-release-magic plugin](https://github.com/ovotech/sbt-release-magic/blob/master/src/main/scala/com/ovoenergy/sbt/release/OvoReleasePlugin.scala)
