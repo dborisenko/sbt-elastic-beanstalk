@@ -32,6 +32,8 @@ The plugin provides the following tasks
 
 Use this task to locally inspect the dockerrun files to be published to AWS.
 
+Dockerrun files will be written to ```project-name/target/aws```
+
 ### ```ebsPublishDockerrunFiles```
 
 This task publishes the dockerrun files to the configured S3 bucket.
@@ -73,7 +75,41 @@ multiple service ports.
 Version 2 includes a mandatory container memory allocation which is set
 automatically according to the AWS Instance type.
 
-> *Note* - Instance types must be configured in ```ebsEC2InstanceTypes```.
+#### Deploying to a single instance type
+
+If your environments all use the same EC2 instance type you can configure this as
+follows
+
+    ebsContainerMemory := 1024,         // Memory expressed in MiB
+    ebsEC2InstanceTypes := Set.empty    // Instance types can be omitted
+
+> *Note* - memory must be set to *half* the RAM for your instance. See *A note about memory*
+> below.
+>
+> You can also follow the steps for multiple instance types below and configure
+> a single instance type instead.
+
+#### Deploying to multiple instance types
+
+If you deploy to environments with multiple instance types you can configure
+this via the ```ebsEC2InstanceTypes``` property as follows
+
+    ebsEC2InstanceTypes := Set(T2.Micro, T2.Small, T2.Medium, T2.Large)
+
+> *Note - the ```ebsContainerMemory``` property will be ignored and predefined
+> memory settings defined in [EC2InstanceTypes](src/main/scala/com/ovoenergy/sbt/ebs/EC2InstanceType.scala)
+> will be used instead.
+
+A dockerrun file will be generated for each instance type you declare with
+filenames of the form ```appVersion-instanceType.json```. You can verify this
+locally by running the ```ebsStageDockerrunFiles``` task.
+
+Example list of dockerrun files for the instance types configured above
+
+    ./onboarding-service/target/aws/0.1.36-t2.large.json
+    ./onboarding-service/target/aws/0.1.36-t2.medium.json
+    ./onboarding-service/target/aws/0.1.36-t2.micro.json
+    ./onboarding-service/target/aws/0.1.36-t2.small.json
 
 Sample dockerrun file for an application exposing 3 service ports running on a
 t2 small instance.
