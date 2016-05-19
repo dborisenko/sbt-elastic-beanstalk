@@ -96,7 +96,7 @@ this via the ```ebsEC2InstanceTypes``` property as follows
 
     ebsEC2InstanceTypes := Set(T2.Micro, T2.Small, T2.Medium, T2.Large)
 
-> *Note - the ```ebsContainerMemory``` property will be ignored and predefined
+> *Note* - the ```ebsContainerMemory``` property will be ignored and predefined
 > memory settings defined in [EC2InstanceTypes](src/main/scala/com/ovoenergy/sbt/ebs/EC2InstanceType.scala)
 > will be used instead.
 
