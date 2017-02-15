@@ -1,3 +1,5 @@
+![Travis](https://travis-ci.org/ovotech/sbt-elastic-beanstalk.svg?branch=master)
+
 # sbt-elastic-beanstalk
 
 SBT plugin providing support for publishing Docker applications to Amazon
