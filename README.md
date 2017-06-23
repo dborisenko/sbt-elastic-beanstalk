@@ -14,7 +14,7 @@ container image.
 
 Add the following to you ```project/plugins.sbt``` file
 
-    addSbtPlugin("com.ovoenergy" % "sbt-elastic-beanstalk" % "0.2.0")
+    addSbtPlugin("com.ovoenergy" % "sbt-elastic-beanstalk" % "0.3.1")
 
 ## Plugin Configuration
 
