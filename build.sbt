@@ -1,11 +1,11 @@
 name := "sbt-elastic-beanstalk"
-version := "0.3.0"
+version := "0.3.1"
 organization := "com.ovoenergy"
 organizationName := "OVO Energy"
 scalaVersion := "2.10.6"
 sbtPlugin := true
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.1.5")
+addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.2.0")
 
 libraryDependencies ++= Seq(
   "com.amazonaws" % "aws-java-sdk-elasticbeanstalk" % "1.10.77",
