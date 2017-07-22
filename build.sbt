@@ -8,8 +8,9 @@ sbtPlugin := true
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.2.0")
 
 libraryDependencies ++= Seq(
-  "com.amazonaws" % "aws-java-sdk-elasticbeanstalk" % "1.10.77",
-  "com.amazonaws" % "aws-java-sdk-s3" % "1.10.77")
+  "com.amazonaws" % "aws-java-sdk-elasticbeanstalk" % "1.11.166",
+  "com.amazonaws" % "aws-java-sdk-s3" % "1.11.166"
+)
 
 licenses := Seq("MIT License" -> url("https://github.com/dborisenko/sbt-elastic-beanstalk/blob/master/LICENSE"))
 homepage := Some(url("https://github.com/dborisenko/sbt-elastic-beanstalk"))
@@ -25,7 +26,7 @@ publishTo := {
     Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
 
-pomIncludeRepository := { _ => false}
+pomIncludeRepository := { _ => false }
 
 pomExtra := (
   <developers>
