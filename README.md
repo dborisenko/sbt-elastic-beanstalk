@@ -1,4 +1,4 @@
-![Travis](https://travis-ci.org/ovotech/sbt-elastic-beanstalk.svg?branch=master)
+![Travis](https://travis-ci.org/dborisenko/sbt-elastic-beanstalk.svg?branch=master)
 
 # sbt-elastic-beanstalk
 
@@ -14,7 +14,7 @@ container image.
 
 Add the following to you ```project/plugins.sbt``` file
 
-    addSbtPlugin("com.ovoenergy" % "sbt-elastic-beanstalk" % "0.3.1")
+    addSbtPlugin("com.dbrsn" % "sbt-elastic-beanstalk" % "0.3.1")
 
 ## Plugin Configuration
 

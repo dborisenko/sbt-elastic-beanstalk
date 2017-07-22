@@ -1,6 +1,6 @@
 name := "sbt-elastic-beanstalk"
 version := "0.3.1"
-organization := "com.ovoenergy"
+organization := "com.dbrsn"
 organizationName := "OVO Energy"
 scalaVersion := "2.10.6"
 sbtPlugin := true
@@ -11,9 +11,9 @@ libraryDependencies ++= Seq(
   "com.amazonaws" % "aws-java-sdk-elasticbeanstalk" % "1.10.77",
   "com.amazonaws" % "aws-java-sdk-s3" % "1.10.77")
 
-licenses := Seq("MIT License" -> url("https://github.com/ovotech/sbt-elastic-beanstalk/blob/master/LICENSE"))
-homepage := Some(url("https://github.com/ovotech/sbt-elastic-beanstalk"))
-scmInfo := Some(ScmInfo(url("https://github.com/ovotech/sbt-elastic-beanstalk"), "scm:git:git://github.com:ovotech/sbt-elastic-beanstalk.git"))
+licenses := Seq("MIT License" -> url("https://github.com/dborisenko/sbt-elastic-beanstalk/blob/master/LICENSE"))
+homepage := Some(url("https://github.com/dborisenko/sbt-elastic-beanstalk"))
+scmInfo := Some(ScmInfo(url("https://github.com/dborisenko/sbt-elastic-beanstalk"), "scm:git:git://github.com:dborisenko/sbt-elastic-beanstalk.git"))
 
 
 publishMavenStyle := true
