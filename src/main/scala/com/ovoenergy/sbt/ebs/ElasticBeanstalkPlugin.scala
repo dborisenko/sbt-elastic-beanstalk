@@ -1,8 +1,8 @@
 package com.ovoenergy.sbt.ebs
 
-import com.amazonaws.regions.{Region, Regions}
-import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClientBuilder
+import com.amazonaws.regions.Regions
 import com.amazonaws.services.elasticbeanstalk.model._
+import com.amazonaws.services.elasticbeanstalk.{AWSElasticBeanstalk, AWSElasticBeanstalkClientBuilder}
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.s3.model._
 import com.typesafe.sbt.packager.NativePackagerKeys
@@ -33,15 +33,26 @@ object ElasticBeanstalkPlugin extends AutoPlugin with NativePackagerKeys with Do
     lazy val ebsDockerAlias: SettingKey[DockerAlias] = settingKey[DockerAlias]("Docker alias descriptor for generating Dockerrun file")
 
     lazy val ebsApplicationName: SettingKey[String] = settingKey[String]("Application name defined in Elastic Beanstalk")
+    lazy val ebsEnvironmentName: SettingKey[String] = settingKey[String]("Environment name defined in Elastic Beanstalk")
+    lazy val ebsVersionsToPublish: SettingKey[Seq[String]] = settingKey[Seq[String]]("Versions to publish")
 
-    lazy val ebsStageDockerrunFiles: TaskKey[List[File]] = taskKey[List[File]]("Stages the Dockerrun.aws.json files")
-    lazy val ebsPublishDockerrunFiles: TaskKey[List[PutObjectResult]] = taskKey[List[PutObjectResult]]("Publishes the Dockerrun.aws.json files to an S3 bucket")
-    lazy val ebsPublishAppVersions: TaskKey[List[CreateApplicationVersionResult]] = taskKey[List[CreateApplicationVersionResult]]("Publishes the application versions to Elastic Beanstalk")
+    lazy val ebsStageDockerrunFiles: TaskKey[Seq[File]] = taskKey[Seq[File]]("Stages the Dockerrun.aws.json files")
+    lazy val ebsPublishDockerrunFiles: TaskKey[Seq[PutObjectResult]] = taskKey[Seq[PutObjectResult]]("Publishes the Dockerrun.aws.json files to an S3 bucket")
+    lazy val ebsPublishAppVersions: TaskKey[Seq[CreateApplicationVersionResult]] = taskKey[Seq[CreateApplicationVersionResult]]("Publishes the application versions to Elastic Beanstalk")
+    lazy val ebsUpdateEnvironment: TaskKey[Unit] = taskKey[Unit]("Update application environment to the published app version")
+
+    lazy val ebsDeploy: TaskKey[Unit] = taskKey[Unit]("Deploy application to Elastic Beanstalk environment")
 
     val T2 = EC2InstanceTypes.T2
   }
 
   import autoImport._
+
+  private def buildAWSElasticBeanstalkClient(region: Regions): AWSElasticBeanstalk = {
+    val ebClientBuilder = AWSElasticBeanstalkClientBuilder.standard()
+    ebClientBuilder.withRegion(region)
+    ebClientBuilder.build()
+  }
 
   override lazy val projectSettings = Seq(
     ebsDockerrunVersion := 1,
@@ -61,6 +72,19 @@ object ElasticBeanstalkPlugin extends AutoPlugin with NativePackagerKeys with Do
     ebsDockerAlias := dockerAlias.value,
 
     ebsApplicationName := packageName.value,
+    ebsEnvironmentName := s"${ebsApplicationName.value}-env",
+
+    ebsVersionsToPublish := {
+      ebsDockerrunVersion.value match {
+        case 1 => List(ebsVersion.value)
+        case 2 =>
+          if (ebsEC2InstanceTypes.value.isEmpty) List(ebsVersion.value)
+          else ebsEC2InstanceTypes.value.map { instanceType =>
+            s"${ebsVersion.value}-$instanceType"
+          }.toList
+        case _ => throw new Exception("Invalid setting for 'ebsDockerrunVersion': must be 1 or 2")
+      }
+    },
 
     ebsStageDockerrunFiles := {
 
@@ -109,24 +133,11 @@ object ElasticBeanstalkPlugin extends AutoPlugin with NativePackagerKeys with Do
       }
     },
     ebsPublishAppVersions := {
-
-      val versionsToPublish = ebsDockerrunVersion.value match {
-        case 1 => List(ebsVersion.value)
-        case 2 =>
-          if (ebsEC2InstanceTypes.value.isEmpty) List(ebsVersion.value)
-          else ebsEC2InstanceTypes.value.map { instanceType =>
-            s"${ebsVersion.value}-$instanceType"
-          }.toList
-        case _ => throw new Exception("Invalid setting for 'ebsDockerrunVersion': must be 1 or 2")
-      }
-
-      val ebClientBuilder = AWSElasticBeanstalkClientBuilder.standard()
-      ebClientBuilder.withRegion(ebsRegion.value)
-      val ebClient = ebClientBuilder.build()
+      val ebClient = buildAWSElasticBeanstalkClient(ebsRegion.value)
 
       val applicationDescriptions = ebClient.describeApplications(new DescribeApplicationsRequest().withApplicationNames(ebsApplicationName.value))
 
-      versionsToPublish.map { versionToPublish =>
+      ebsVersionsToPublish.value.map { versionToPublish =>
         if (applicationDescriptions.getApplications.exists(_.getVersions contains versionToPublish)) {
           if (isSnapshot.value) ebClient.deleteApplicationVersion(new DeleteApplicationVersionRequest(ebsApplicationName.value, versionToPublish))
           else throw new Exception(s"Unable to create new application version on Elastic Beanstalk: version $versionToPublish already exists")
@@ -141,6 +152,23 @@ object ElasticBeanstalkPlugin extends AutoPlugin with NativePackagerKeys with Do
             .withSourceBundle(new S3Location(ebsS3Bucket.value, key))
         )
       }
-    }
+    },
+    ebsUpdateEnvironment := {
+      val ebClient = buildAWSElasticBeanstalkClient(ebsRegion.value)
+
+      ebClient.updateEnvironment(
+        new UpdateEnvironmentRequest()
+          .withApplicationName(ebsApplicationName.value)
+          .withVersionLabel(ebsVersionsToPublish.value.head)
+          .withEnvironmentName(ebsEnvironmentName.value)
+      )
+    },
+    ebsDeploy := ebsDeploy.dependsOn(
+      publish in DockerPlugin.autoImport.Docker,
+      ebsStageDockerrunFiles,
+      ebsPublishDockerrunFiles,
+      ebsPublishAppVersions,
+      ebsUpdateEnvironment
+    )
   )
 }
