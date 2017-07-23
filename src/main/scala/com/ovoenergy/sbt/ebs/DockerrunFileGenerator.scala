@@ -1,27 +1,22 @@
 package com.ovoenergy.sbt.ebs
 
+import com.typesafe.sbt.packager.docker.DockerAlias
 import sbt._
 
 object DockerrunFileGenerator {
 
-  def generateDockerrunFileVersion1(targetDir: File, packageName: String, version: String,
-    dockerRepository: Option[String], s3AuthBucket: String, s3AuthKey: String,
+  def generateDockerrunFileVersion1(targetDir: File, docker: DockerAlias, s3AuthBucket: String, s3AuthKey: String,
     containerPort: Int): File = {
 
-    val fileName = s"$version.json"
+    val fileName = s"${docker.tag.getOrElse("latest")}.json"
     val jsonFile = targetDir / "aws" / fileName
     jsonFile.delete()
 
-    val image = s"$packageName:$version"
-    val imageName = dockerRepository match {
-      case Some(repository) => s"$repository/$image"
-      case None => image
-    }
     val fileContents =
       s"""|{
           |  "AWSEBDockerrunVersion": "1",
           |  "Image": {
-          |    "Name": "$imageName"
+          |    "Name": "${docker.versioned}"
           |  },
           |  "Authentication": {
           |    "Bucket": "$s3AuthBucket",
@@ -38,22 +33,16 @@ object DockerrunFileGenerator {
     jsonFile
   }
 
-  def generateDockerrunFileVersion2(targetDir: File, packageName: String, version: String,
-    dockerRepository: Option[String], s3AuthBucket: String, s3AuthKey: String,
+  def generateDockerrunFileVersion2(targetDir: File, docker: DockerAlias, s3AuthBucket: String, s3AuthKey: String,
     portMappings: Map[Int, Int], memoryOrInstanceType: Either[Int, EC2InstanceType]): File = {
 
+    val version = docker.tag.getOrElse("latest")
     val fileName = memoryOrInstanceType match {
       case Left(_) => s"$version.json"
       case Right(instanceType) => s"$version-$instanceType.json"
     }
     val jsonFile = targetDir / "aws" / fileName
     jsonFile.delete()
-
-    val image = s"$packageName:$version"
-    val imageName = dockerRepository match {
-      case Some(repository) => s"$repository/$image"
-      case None => image
-    }
 
     val memory = memoryOrInstanceType match {
       case Left(mem) => mem
@@ -68,8 +57,8 @@ object DockerrunFileGenerator {
           |  },
           |  "containerDefinitions": [
           |    {
-          |      "name": "$packageName",
-          |      "image": "$imageName",
+          |      "name": "${docker.name}",
+          |      "image": "${docker.versioned}",
           |      "memory": $memory,
           |      "essential": true,
           |      "portMappings": [
