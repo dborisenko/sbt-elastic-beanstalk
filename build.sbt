@@ -1,5 +1,5 @@
 name := "sbt-elastic-beanstalk"
-version := "0.3.1"
+version := "0.3.2"
 organization := "com.dbrsn"
 organizationName := "OVO Energy"
 scalaVersion := "2.10.6"
