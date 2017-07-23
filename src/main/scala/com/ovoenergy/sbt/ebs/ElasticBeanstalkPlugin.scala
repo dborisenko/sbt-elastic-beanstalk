@@ -32,6 +32,8 @@ object ElasticBeanstalkPlugin extends AutoPlugin with NativePackagerKeys with Do
 
     lazy val ebsDockerAlias: SettingKey[DockerAlias] = settingKey[DockerAlias]("Docker alias descriptor for generating Dockerrun file")
 
+    lazy val ebsApplicationName: SettingKey[String] = settingKey[String]("Application name defined in Elastic Beanstalk")
+
     lazy val ebsStageDockerrunFiles: TaskKey[List[File]] = taskKey[List[File]]("Stages the Dockerrun.aws.json files")
     lazy val ebsPublishDockerrunFiles: TaskKey[List[PutObjectResult]] = taskKey[List[PutObjectResult]]("Publishes the Dockerrun.aws.json files to an S3 bucket")
     lazy val ebsPublishAppVersions: TaskKey[List[CreateApplicationVersionResult]] = taskKey[List[CreateApplicationVersionResult]]("Publishes the application versions to Elastic Beanstalk")
@@ -57,6 +59,8 @@ object ElasticBeanstalkPlugin extends AutoPlugin with NativePackagerKeys with Do
     ebsEC2InstanceTypes := Set.empty,
 
     ebsDockerAlias := dockerAlias.value,
+
+    ebsApplicationName := packageName.value,
 
     ebsStageDockerrunFiles := {
 
@@ -97,7 +101,7 @@ object ElasticBeanstalkPlugin extends AutoPlugin with NativePackagerKeys with Do
       }
 
       jsonFiles.map { jsonFile =>
-        val key = s"${packageName.value}/${jsonFile.getName}"
+        val key = s"${ebsApplicationName.value}/${jsonFile.getName}"
         if (s3Client.doesObjectExist(bucket, key) && !isSnapshot.value) {
           throw new Exception(s"Unable to publish new dockerrun file to S3: file $key already exists")
         }
@@ -107,11 +111,11 @@ object ElasticBeanstalkPlugin extends AutoPlugin with NativePackagerKeys with Do
     ebsPublishAppVersions := {
 
       val versionsToPublish = ebsDockerrunVersion.value match {
-        case 1 => List(version.value)
+        case 1 => List(ebsVersion.value)
         case 2 =>
-          if (ebsEC2InstanceTypes.value.isEmpty) List(version.value)
+          if (ebsEC2InstanceTypes.value.isEmpty) List(ebsVersion.value)
           else ebsEC2InstanceTypes.value.map { instanceType =>
-            s"${version.value}-$instanceType"
+            s"${ebsVersion.value}-$instanceType"
           }.toList
         case _ => throw new Exception("Invalid setting for 'ebsDockerrunVersion': must be 1 or 2")
       }
@@ -120,20 +124,20 @@ object ElasticBeanstalkPlugin extends AutoPlugin with NativePackagerKeys with Do
       ebClientBuilder.withRegion(ebsRegion.value)
       val ebClient = ebClientBuilder.build()
 
-      val applicationDescriptions = ebClient.describeApplications(new DescribeApplicationsRequest().withApplicationNames(packageName.value))
+      val applicationDescriptions = ebClient.describeApplications(new DescribeApplicationsRequest().withApplicationNames(ebsApplicationName.value))
 
-      versionsToPublish.map { ebsVersion =>
-        if (applicationDescriptions.getApplications.exists(_.getVersions contains ebsVersion)) {
-          if (isSnapshot.value) ebClient.deleteApplicationVersion(new DeleteApplicationVersionRequest(packageName.value, ebsVersion))
-          else throw new Exception(s"Unable to create new application version on Elastic Beanstalk: version $ebsVersion already exists")
+      versionsToPublish.map { versionToPublish =>
+        if (applicationDescriptions.getApplications.exists(_.getVersions contains versionToPublish)) {
+          if (isSnapshot.value) ebClient.deleteApplicationVersion(new DeleteApplicationVersionRequest(ebsApplicationName.value, versionToPublish))
+          else throw new Exception(s"Unable to create new application version on Elastic Beanstalk: version $versionToPublish already exists")
         }
 
-        val key = s"${packageName.value}/$ebsVersion.json"
+        val key = s"${ebsApplicationName.value}/$versionToPublish.json"
         ebClient.createApplicationVersion(
           new CreateApplicationVersionRequest()
-            .withApplicationName(packageName.value)
-            .withDescription(version.value)
-            .withVersionLabel(ebsVersion)
+            .withApplicationName(ebsApplicationName.value)
+            .withDescription(ebsVersion.value)
+            .withVersionLabel(versionToPublish)
             .withSourceBundle(new S3Location(ebsS3Bucket.value, key))
         )
       }
