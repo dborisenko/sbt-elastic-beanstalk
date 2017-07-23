@@ -28,11 +28,12 @@ publishTo := {
 
 pomIncludeRepository := { _ => false }
 
-pomExtra := (
+pomExtra :=
   <developers>
     <developer>
       <id>Ovo Energy</id>
       <name>Ovo Energy</name>
       <url>http://www.ovoenergy.com</url>
     </developer>
-  </developers>)
+  </developers>
+

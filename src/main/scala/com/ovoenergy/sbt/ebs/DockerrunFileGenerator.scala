@@ -1,21 +1,18 @@
 package com.ovoenergy.sbt.ebs
 
 import sbt._
-import Keys._
-
-import scala.collection.JavaConversions._
 
 object DockerrunFileGenerator {
 
   def generateDockerrunFileVersion1(targetDir: File, packageName: String, version: String,
     dockerRepository: Option[String], s3AuthBucket: String, s3AuthKey: String,
-    containerPort: Int) = {
+    containerPort: Int): File = {
 
-    val fileName = s"${version}.json"
+    val fileName = s"$version.json"
     val jsonFile = targetDir / "aws" / fileName
     jsonFile.delete()
 
-    val image = s"${packageName}:${version}"
+    val image = s"$packageName:$version"
     val imageName = dockerRepository match {
       case Some(repository) => s"$repository/$image"
       case None => image
@@ -43,16 +40,16 @@ object DockerrunFileGenerator {
 
   def generateDockerrunFileVersion2(targetDir: File, packageName: String, version: String,
     dockerRepository: Option[String], s3AuthBucket: String, s3AuthKey: String,
-    portMappings: Map[Int, Int], memoryOrInstanceType: Either[Int, EC2InstanceType]) = {
+    portMappings: Map[Int, Int], memoryOrInstanceType: Either[Int, EC2InstanceType]): File = {
 
     val fileName = memoryOrInstanceType match {
-      case Left(memory) => s"${version}.json"
-      case Right(instanceType) => s"${version}-${instanceType}.json"
+      case Left(_) => s"$version.json"
+      case Right(instanceType) => s"$version-$instanceType.json"
     }
     val jsonFile = targetDir / "aws" / fileName
     jsonFile.delete()
 
-    val image = s"${packageName}:${version}"
+    val image = s"$packageName:$version"
     val imageName = dockerRepository match {
       case Some(repository) => s"$repository/$image"
       case None => image
@@ -60,7 +57,7 @@ object DockerrunFileGenerator {
 
     import EC2InstanceTypes._
     val memory = memoryOrInstanceType match {
-      case Left(memory) => memory
+      case Left(mem) => mem
       case Right(instanceType) => instanceType.memory
     }
     val fileContents =
