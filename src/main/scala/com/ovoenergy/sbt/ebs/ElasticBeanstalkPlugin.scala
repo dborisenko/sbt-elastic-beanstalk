@@ -39,7 +39,7 @@ object ElasticBeanstalkPlugin extends AutoPlugin with NativePackagerKeys with Do
     lazy val ebsStageDockerrunFiles: TaskKey[Seq[File]] = taskKey[Seq[File]]("Stages the Dockerrun.aws.json files")
     lazy val ebsPublishDockerrunFiles: TaskKey[Seq[PutObjectResult]] = taskKey[Seq[PutObjectResult]]("Publishes the Dockerrun.aws.json files to an S3 bucket")
     lazy val ebsPublishAppVersions: TaskKey[Seq[CreateApplicationVersionResult]] = taskKey[Seq[CreateApplicationVersionResult]]("Publishes the application versions to Elastic Beanstalk")
-    lazy val ebsUpdateEnvironment: TaskKey[Unit] = taskKey[Unit]("Update application environment to the published app version")
+    lazy val ebsUpdateEnvironment: TaskKey[UpdateEnvironmentResult] = taskKey[UpdateEnvironmentResult]("Update application environment to the published app version")
 
     lazy val ebsDeploy: TaskKey[Unit] = taskKey[Unit]("Deploy application to Elastic Beanstalk environment")
 
@@ -163,12 +163,16 @@ object ElasticBeanstalkPlugin extends AutoPlugin with NativePackagerKeys with Do
           .withEnvironmentName(ebsEnvironmentName.value)
       )
     },
-    ebsDeploy := ebsDeploy.dependsOn(
-      publish in DockerPlugin.autoImport.Docker,
-      ebsStageDockerrunFiles,
-      ebsPublishDockerrunFiles,
-      ebsPublishAppVersions,
-      ebsUpdateEnvironment
-    )
+    ebsDeploy := {
+      ebsUpdateEnvironment.dependsOn(
+        ebsPublishAppVersions.dependsOn(
+          ebsPublishDockerrunFiles.dependsOn(
+            ebsStageDockerrunFiles.dependsOn(
+              publish in DockerPlugin.autoImport.Docker
+            )
+          )
+        )
+      )
+    }.value
   )
 }
