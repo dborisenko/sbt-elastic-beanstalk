@@ -2,11 +2,10 @@ package com.ovoenergy.sbt.ebs
 
 import sbt._
 import Keys._
-
-import com.amazonaws.regions.{Regions, Region}
-import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient
+import com.amazonaws.regions.{Region, Regions}
+import com.amazonaws.services.elasticbeanstalk.{AWSElasticBeanstalkClient, AWSElasticBeanstalkClientBuilder}
 import com.amazonaws.services.elasticbeanstalk.model._
-import com.amazonaws.services.s3.AmazonS3Client
+import com.amazonaws.services.s3.{AmazonS3Client, AmazonS3ClientBuilder}
 import com.amazonaws.services.s3.model._
 import com.typesafe.sbt.packager.NativePackagerKeys
 import com.typesafe.sbt.packager.docker.{DockerKeys, DockerPlugin}
@@ -83,7 +82,7 @@ object ElasticBeanstalkPlugin extends AutoPlugin with NativePackagerKeys with Do
 
       val bucket = ebsS3Bucket.value
 
-      val s3Client = new AmazonS3Client()
+      val s3Client = AmazonS3ClientBuilder.defaultClient()
       s3Client.setRegion(Region.getRegion(ebsRegion.value))
 
       if (!s3Client.doesBucketExist(bucket)) {
@@ -111,8 +110,9 @@ object ElasticBeanstalkPlugin extends AutoPlugin with NativePackagerKeys with Do
         case _ => throw new Exception("Invalid setting for 'ebsDockerrunVersion': must be 1 or 2")
       }
 
-      val ebClient = new AWSElasticBeanstalkClient()
-      ebClient.setRegion(Region.getRegion(ebsRegion.value))
+      val ebClientBuilder = AWSElasticBeanstalkClientBuilder.standard()
+      ebClientBuilder.withRegion(ebsRegion.value)
+      val ebClient = ebClientBuilder.build()
 
       val applicationDescriptions = ebClient.describeApplications(new DescribeApplicationsRequest().withApplicationNames(packageName.value))
 

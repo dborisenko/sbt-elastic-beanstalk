@@ -55,7 +55,6 @@ object DockerrunFileGenerator {
       case None => image
     }
 
-    import EC2InstanceTypes._
     val memory = memoryOrInstanceType match {
       case Left(mem) => mem
       case Right(instanceType) => instanceType.memory
