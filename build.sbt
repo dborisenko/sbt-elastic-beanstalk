@@ -5,11 +5,13 @@ organizationName := "OVO Energy"
 scalaVersion := "2.10.6"
 sbtPlugin := true
 
+val awsJavaSdkVersion = "1.11.171"
+
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.2.0")
 
 libraryDependencies ++= Seq(
-  "com.amazonaws" % "aws-java-sdk-elasticbeanstalk" % "1.11.166",
-  "com.amazonaws" % "aws-java-sdk-s3" % "1.11.166"
+  "com.amazonaws" % "aws-java-sdk-elasticbeanstalk" % awsJavaSdkVersion,
+  "com.amazonaws" % "aws-java-sdk-s3" % awsJavaSdkVersion
 )
 
 licenses := Seq("MIT License" -> url("https://github.com/dborisenko/sbt-elastic-beanstalk/blob/master/LICENSE"))
@@ -34,6 +36,11 @@ pomExtra :=
       <id>Ovo Energy</id>
       <name>Ovo Energy</name>
       <url>http://www.ovoenergy.com</url>
+    </developer>
+    <developer>
+      <id>Denis Borisenko</id>
+      <name>Denis Borisenko</name>
+      <url>http://www.dbrsn.com</url>
     </developer>
   </developers>
 
