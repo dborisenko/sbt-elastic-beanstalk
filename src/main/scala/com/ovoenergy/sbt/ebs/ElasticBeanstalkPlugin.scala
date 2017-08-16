@@ -28,6 +28,8 @@ object ElasticBeanstalkPlugin extends AutoPlugin with NativePackagerKeys with Do
     lazy val ebsContainerPort = settingKey[Int]("Docker container port (Dockerrun version 1 only)")
 
     lazy val ebsContainerMemory = settingKey[Int]("Memory required by the Docker container (Dockerrun version 2 only)")
+    lazy val ebsContainerMemoryReservation = settingKey[Int]("Memory reservation for the Docker container (Dockerrun version 2 only)")
+    lazy val ebsContainerUseMemoryReservation = settingKey[Boolean]("Use memoryReservation instead of memory setting for the Docker container (Dockerrun version 2 only)")
     lazy val ebsPortMappings = settingKey[Map[Int, Int]]("Port mappings for the Docker container (Dockerrun version 2 only)")
     lazy val ebsEC2InstanceTypes = settingKey[Set[EC2InstanceType]]("EC2 instance types to generate Dockerrun files for (Dockerrun version 2 only)")
 
@@ -47,7 +49,9 @@ object ElasticBeanstalkPlugin extends AutoPlugin with NativePackagerKeys with Do
 
     ebsContainerPort := 8080,
 
-    ebsContainerMemory := 512,
+    ebsContainerMemory := EC2InstanceTypes.T2.Micro.memory,
+    ebsContainerMemoryReservation := EC2InstanceTypes.T2.Micro.memoryReservation,
+    ebsContainerUseMemoryReservation := true,
     ebsPortMappings := Map(
       80 -> 8080,
       8081 -> 8081
@@ -66,13 +70,14 @@ object ElasticBeanstalkPlugin extends AutoPlugin with NativePackagerKeys with Do
             List(DockerrunFileGenerator.generateDockerrunFileVersion2(
               target.value, packageName.value, version.value,
                 dockerRepository.value, ebsS3AuthBucket.value, ebsS3AuthKey.value,
-                ebsPortMappings.value, Left(ebsContainerMemory.value)))
+                ebsPortMappings.value, Left((ebsContainerMemory.value, ebsContainerMemoryReservation.value)),
+                ebsContainerUseMemoryReservation.value))
           } else {
             ebsEC2InstanceTypes.value.map { instanceType =>
               DockerrunFileGenerator.generateDockerrunFileVersion2(
                 target.value, packageName.value, version.value,
                   dockerRepository.value, ebsS3AuthBucket.value, ebsS3AuthKey.value,
-                  ebsPortMappings.value, Right(instanceType))
+                  ebsPortMappings.value, Right(instanceType), ebsContainerUseMemoryReservation.value)
             }.toList
           }
         case _ => throw new Exception("Invalid setting for 'ebsDockerrunVersion': must be 1 or 2")
