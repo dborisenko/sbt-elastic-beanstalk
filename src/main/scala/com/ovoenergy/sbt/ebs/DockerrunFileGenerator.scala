@@ -43,10 +43,11 @@ object DockerrunFileGenerator {
 
   def generateDockerrunFileVersion2(targetDir: File, packageName: String, version: String,
     dockerRepository: Option[String], s3AuthBucket: String, s3AuthKey: String,
-    portMappings: Map[Int, Int], memoryOrInstanceType: Either[Int, EC2InstanceType]) = {
+    portMappings: Map[Int, Int], memoryOrInstanceType: Either[(Int, Int), EC2InstanceType],
+    useMemoryReservation: Boolean) = {
 
     val fileName = memoryOrInstanceType match {
-      case Left(memory) => s"${version}.json"
+      case Left(_)             => s"${version}.json"
       case Right(instanceType) => s"${version}-${instanceType}.json"
     }
     val jsonFile = targetDir / "aws" / fileName
@@ -55,14 +56,20 @@ object DockerrunFileGenerator {
     val image = s"${packageName}:${version}"
     val imageName = dockerRepository match {
       case Some(repository) => s"$repository/$image"
-      case None => image
+      case None             => image
     }
 
     import EC2InstanceTypes._
     val memory = memoryOrInstanceType match {
-      case Left(memory) => memory
-      case Right(instanceType) => instanceType.memory
+      case Left((memory, _))            => memory
+      case Right(instanceType)          => instanceType.memory
     }
+    val memoryReservation = memoryOrInstanceType match {
+      case Left((_, memoryReservation)) => memoryReservation
+      case Right(instanceType)          => instanceType.memoryReservation
+    }
+    val memorySettingField = if (useMemoryReservation) "memoryReservation" else "memory"
+    val memorySettingValue = if (useMemoryReservation) memoryReservation else memory
     val fileContents =
       s"""|{
           |  "AWSEBDockerrunVersion": 2,
@@ -74,7 +81,7 @@ object DockerrunFileGenerator {
           |    {
           |      "name": "$packageName",
           |      "image": "$imageName",
-          |      "memory": $memory,
+          |      "$memorySettingField": $memorySettingValue,
           |      "essential": true,
           |      "portMappings": [
           |""".stripMargin + portMappings.map { case (hostPort, containerPort) =>
