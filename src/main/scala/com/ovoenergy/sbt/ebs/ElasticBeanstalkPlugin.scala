@@ -10,7 +10,7 @@ import com.typesafe.sbt.packager.docker.{DockerAlias, DockerKeys, DockerPlugin}
 import sbt.Keys._
 import sbt._
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 object ElasticBeanstalkPlugin extends AutoPlugin with NativePackagerKeys with DockerKeys {
 
@@ -87,23 +87,31 @@ object ElasticBeanstalkPlugin extends AutoPlugin with NativePackagerKeys with Do
     },
 
     ebsStageDockerrunFiles := {
+      val targetValue = target.value
+      val ebsDockerAliasValue = ebsDockerAlias.value
+      val ebsS3AuthBucketValue = ebsS3AuthBucket.value
+      val ebsS3AuthKeyValue = ebsS3AuthKey.value
+      val ebsContainerPortValue = ebsContainerPort.value
+      val ebsPortMappingsValue = ebsPortMappings.value
+      val ebsContainerMemoryValue = ebsContainerMemory.value
+      val ebsEC2InstanceTypesValue = ebsEC2InstanceTypes.value
 
       ebsDockerrunVersion.value match {
         case 1 => List(DockerrunFileGenerator.generateDockerrunFileVersion1(
-          target.value, ebsDockerAlias.value, ebsS3AuthBucket.value, ebsS3AuthKey.value,
-          ebsContainerPort.value
+          targetValue, ebsDockerAliasValue, ebsS3AuthBucketValue, ebsS3AuthKeyValue,
+          ebsContainerPortValue
         ))
         case 2 =>
-          if (ebsEC2InstanceTypes.value.isEmpty) {
+          if (ebsEC2InstanceTypesValue.isEmpty) {
             List(DockerrunFileGenerator.generateDockerrunFileVersion2(
-              target.value, ebsDockerAlias.value, ebsS3AuthBucket.value, ebsS3AuthKey.value,
-              ebsPortMappings.value, Left(ebsContainerMemory.value)
+              targetValue, ebsDockerAliasValue, ebsS3AuthBucketValue, ebsS3AuthKeyValue,
+              ebsPortMappingsValue, Left(ebsContainerMemoryValue)
             ))
           } else {
-            ebsEC2InstanceTypes.value.map { instanceType =>
+            ebsEC2InstanceTypesValue.map { instanceType =>
               DockerrunFileGenerator.generateDockerrunFileVersion2(
-                target.value, ebsDockerAlias.value, ebsS3AuthBucket.value, ebsS3AuthKey.value,
-                ebsPortMappings.value, Right(instanceType)
+                targetValue, ebsDockerAliasValue, ebsS3AuthBucketValue, ebsS3AuthKeyValue,
+                ebsPortMappingsValue, Right(instanceType)
               )
             }.toList
           }
@@ -112,8 +120,9 @@ object ElasticBeanstalkPlugin extends AutoPlugin with NativePackagerKeys with Do
     },
     ebsPublishDockerrunFiles := {
       val jsonFiles = ebsStageDockerrunFiles.value
-
       val bucket = ebsS3Bucket.value
+      val ebsApplicationNameValue = ebsApplicationName.value
+      val isSnapshotValue = isSnapshot.value
 
       val s3ClientBuilder = AmazonS3ClientBuilder.standard()
       s3ClientBuilder.withRegion(ebsRegion.value)
@@ -125,8 +134,8 @@ object ElasticBeanstalkPlugin extends AutoPlugin with NativePackagerKeys with Do
       }
 
       jsonFiles.map { jsonFile =>
-        val key = s"${ebsApplicationName.value}/${jsonFile.getName}"
-        if (s3Client.doesObjectExist(bucket, key) && !isSnapshot.value) {
+        val key = s"$ebsApplicationNameValue/${jsonFile.getName}"
+        if (s3Client.doesObjectExist(bucket, key) && !isSnapshotValue) {
           throw new Exception(s"Unable to publish new dockerrun file to S3: file $key already exists")
         }
         s3Client.putObject(bucket, key, jsonFile)
@@ -134,31 +143,36 @@ object ElasticBeanstalkPlugin extends AutoPlugin with NativePackagerKeys with Do
     },
     ebsPublishAppVersions := {
       val ebClient = buildAWSElasticBeanstalkClient(ebsRegion.value)
+      val ebsApplicationNameValue = ebsApplicationName.value
+      val isSnapshotValue = isSnapshot.value
+      val ebsVersionValue = ebsVersion.value
+      val ebsS3BucketValue = ebsS3Bucket.value
 
-      val applicationDescriptions = ebClient.describeApplications(new DescribeApplicationsRequest().withApplicationNames(ebsApplicationName.value))
+      val applicationDescriptions = ebClient.describeApplications(new DescribeApplicationsRequest().withApplicationNames(ebsApplicationNameValue))
 
       ebsVersionsToPublish.value.map { versionToPublish =>
-        if (applicationDescriptions.getApplications.exists(_.getVersions contains versionToPublish)) {
-          if (isSnapshot.value) ebClient.deleteApplicationVersion(new DeleteApplicationVersionRequest(ebsApplicationName.value, versionToPublish))
+        if (applicationDescriptions.getApplications.asScala.exists(_.getVersions contains versionToPublish)) {
+          if (isSnapshotValue) ebClient.deleteApplicationVersion(new DeleteApplicationVersionRequest(ebsApplicationNameValue, versionToPublish))
           else throw new Exception(s"Unable to create new application version on Elastic Beanstalk: version $versionToPublish already exists")
         }
 
-        val key = s"${ebsApplicationName.value}/$versionToPublish.json"
+        val key = s"$ebsApplicationNameValue/$versionToPublish.json"
         ebClient.createApplicationVersion(
           new CreateApplicationVersionRequest()
-            .withApplicationName(ebsApplicationName.value)
-            .withDescription(ebsVersion.value)
+            .withApplicationName(ebsApplicationNameValue)
+            .withDescription(ebsVersionValue)
             .withVersionLabel(versionToPublish)
-            .withSourceBundle(new S3Location(ebsS3Bucket.value, key))
+            .withSourceBundle(new S3Location(ebsS3BucketValue, key))
         )
       }
     },
     ebsUpdateEnvironment := {
       val ebClient = buildAWSElasticBeanstalkClient(ebsRegion.value)
+      val ebsApplicationNameValue = ebsApplicationName.value
 
       ebClient.updateEnvironment(
         new UpdateEnvironmentRequest()
-          .withApplicationName(ebsApplicationName.value)
+          .withApplicationName(ebsApplicationNameValue)
           .withVersionLabel(ebsVersionsToPublish.value.head)
           .withEnvironmentName(ebsEnvironmentName.value)
       )

@@ -1,13 +1,14 @@
 name := "sbt-elastic-beanstalk"
-version := "0.3.2"
+version := "0.3.3"
 organization := "com.dbrsn"
 organizationName := "OVO Energy"
-scalaVersion := "2.10.6"
+scalaVersion := "2.12.3"
 sbtPlugin := true
 
-val awsJavaSdkVersion = "1.11.171"
+val awsJavaSdkVersion = "1.11.183"
+val sbtNativePackagerVersion = "1.2.2"
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.2.0")
+addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % sbtNativePackagerVersion)
 
 libraryDependencies ++= Seq(
   "com.amazonaws" % "aws-java-sdk-elasticbeanstalk" % awsJavaSdkVersion,
