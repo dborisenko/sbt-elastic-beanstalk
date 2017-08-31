@@ -14,7 +14,7 @@ object EC2InstanceTypes {
     case object Small extends EC2InstanceType {
       override def toString() = "t2.small"
       val memory = 1024
-      val memoryReservation = 2003
+      val memoryReservation = 2001
     }
     case object Medium extends EC2InstanceType {
       override def toString() = "t2.medium"
