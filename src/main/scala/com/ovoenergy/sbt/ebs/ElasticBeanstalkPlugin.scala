@@ -32,6 +32,9 @@ object ElasticBeanstalkPlugin extends AutoPlugin with NativePackagerKeys with Do
 
     lazy val ebsDockerAlias: SettingKey[DockerAlias] = settingKey[DockerAlias]("Docker alias descriptor for generating Dockerrun file")
 
+    lazy val ebsContainerMemoryReservation = settingKey[Int]("Memory reservation for the Docker container (Dockerrun version 2 only)")
+    lazy val ebsContainerUseMemoryReservation = settingKey[Boolean]("Use memoryReservation instead of memory setting for the Docker container (Dockerrun version 2 only)")
+
     lazy val ebsApplicationName: SettingKey[String] = settingKey[String]("Application name defined in Elastic Beanstalk")
     lazy val ebsEnvironmentName: SettingKey[String] = settingKey[String]("Environment name defined in Elastic Beanstalk")
     lazy val ebsVersionsToPublish: SettingKey[Seq[String]] = settingKey[Seq[String]]("Versions to publish")
@@ -62,7 +65,9 @@ object ElasticBeanstalkPlugin extends AutoPlugin with NativePackagerKeys with Do
 
     ebsContainerPort := 8080,
 
-    ebsContainerMemory := 512,
+    ebsContainerMemory := EC2InstanceTypes.T2.Micro.memory,
+    ebsContainerMemoryReservation := EC2InstanceTypes.T2.Micro.memoryReservation,
+    ebsContainerUseMemoryReservation := true,
     ebsPortMappings := Map(
       80 -> 8080,
       8081 -> 8081
@@ -95,6 +100,8 @@ object ElasticBeanstalkPlugin extends AutoPlugin with NativePackagerKeys with Do
       val ebsPortMappingsValue = ebsPortMappings.value
       val ebsContainerMemoryValue = ebsContainerMemory.value
       val ebsEC2InstanceTypesValue = ebsEC2InstanceTypes.value
+      val ebsContainerUseMemoryReservationValue = ebsContainerUseMemoryReservation.value
+      val ebsContainerMemoryReservationValue = ebsContainerMemoryReservation.value
 
       ebsDockerrunVersion.value match {
         case 1 => List(DockerrunFileGenerator.generateDockerrunFileVersion1(
@@ -105,13 +112,14 @@ object ElasticBeanstalkPlugin extends AutoPlugin with NativePackagerKeys with Do
           if (ebsEC2InstanceTypesValue.isEmpty) {
             List(DockerrunFileGenerator.generateDockerrunFileVersion2(
               targetValue, ebsDockerAliasValue, ebsS3AuthBucketValue, ebsS3AuthKeyValue,
-              ebsPortMappingsValue, Left(ebsContainerMemoryValue)
+              ebsPortMappingsValue, Left((ebsContainerMemoryValue, ebsContainerMemoryReservationValue)),
+              ebsContainerUseMemoryReservationValue
             ))
           } else {
             ebsEC2InstanceTypesValue.map { instanceType =>
               DockerrunFileGenerator.generateDockerrunFileVersion2(
                 targetValue, ebsDockerAliasValue, ebsS3AuthBucketValue, ebsS3AuthKeyValue,
-                ebsPortMappingsValue, Right(instanceType)
+                ebsPortMappingsValue, Right(instanceType), ebsContainerUseMemoryReservationValue
               )
             }.toList
           }

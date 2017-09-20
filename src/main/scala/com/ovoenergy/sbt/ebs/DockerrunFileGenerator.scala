@@ -34,7 +34,8 @@ object DockerrunFileGenerator {
   }
 
   def generateDockerrunFileVersion2(targetDir: File, docker: DockerAlias, s3AuthBucket: String, s3AuthKey: String,
-    portMappings: Map[Int, Int], memoryOrInstanceType: Either[Int, EC2InstanceType]): File = {
+    portMappings: Map[Int, Int], memoryOrInstanceType: Either[(Int, Int), EC2InstanceType],
+    useMemoryReservation: Boolean): File = {
 
     val version = docker.tag.getOrElse("latest")
     val fileName = memoryOrInstanceType match {
@@ -43,11 +44,16 @@ object DockerrunFileGenerator {
     }
     val jsonFile = targetDir / "aws" / fileName
     jsonFile.delete()
-
     val memory = memoryOrInstanceType match {
-      case Left(mem) => mem
+      case Left((mem, _)) => mem
       case Right(instanceType) => instanceType.memory
     }
+    val memoryReservation = memoryOrInstanceType match {
+      case Left((_, mr)) => mr
+      case Right(instanceType) => instanceType.memoryReservation
+    }
+    val memorySettingField = if (useMemoryReservation) "memoryReservation" else "memory"
+    val memorySettingValue = if (useMemoryReservation) memoryReservation else memory
     val fileContents =
       s"""|{
           |  "AWSEBDockerrunVersion": 2,
@@ -60,13 +66,15 @@ object DockerrunFileGenerator {
           |      "name": "${docker.name}",
           |      "image": "${docker.versioned}",
           |      "memory": $memory,
+          |      "$memorySettingField": $memorySettingValue,
           |      "essential": true,
           |      "portMappings": [
           |""".stripMargin + portMappings.map { case (hostPort, containerPort) =>
       s"""|        {
           |          "hostPort": $hostPort,
           |          "containerPort": $containerPort
-          |        }""".stripMargin }.mkString(",\n") + '\n' +
+          |        }""".stripMargin
+    }.mkString(",\n") + '\n' +
       s"""|      ]
           |    }
           |  ]

@@ -1,5 +1,5 @@
 name := "sbt-elastic-beanstalk"
-version := "0.3.3"
+version := "0.4.10"
 organization := "com.dbrsn"
 organizationName := "OVO Energy"
 scalaVersion := "2.12.3"
@@ -15,21 +15,18 @@ libraryDependencies ++= Seq(
   "com.amazonaws" % "aws-java-sdk-s3" % awsJavaSdkVersion
 )
 
-licenses := Seq("MIT License" -> url("https://github.com/dborisenko/sbt-elastic-beanstalk/blob/master/LICENSE"))
-homepage := Some(url("https://github.com/dborisenko/sbt-elastic-beanstalk"))
-scmInfo := Some(ScmInfo(url("https://github.com/dborisenko/sbt-elastic-beanstalk"), "scm:git:git://github.com:dborisenko/sbt-elastic-beanstalk.git"))
-
+credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 
 publishMavenStyle := true
 publishTo := {
   val nexus = "https://oss.sonatype.org/"
-  if (isSnapshot.value)
-    Some("snapshots" at nexus + "content/repositories/snapshots")
-  else
-    Some("releases" at nexus + "service/local/staging/deploy/maven2")
+  if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
+  else Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
 
 pomIncludeRepository := { _ => false }
+licenses := Seq("Apache 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
+homepage := Some(url("http://www.ovoenergy.com"))
 
 pomExtra :=
   <developers>
