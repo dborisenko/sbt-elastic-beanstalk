@@ -26,7 +26,8 @@ publishTo := {
 
 pomIncludeRepository := { _ => false }
 licenses := Seq("Apache 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
-homepage := Some(url("http://www.ovoenergy.com"))
+homepage := Some(url("https://github.com/dborisenko/sbt-elastic-beanstalk"))
+scmInfo := Some(ScmInfo(url("https://github.com/dborisenko/sbt-elastic-beanstalk"), "scm:git:git://github.com:dborisenko/sbt-elastic-beanstalk.git"))
 
 pomExtra :=
   <developers>
