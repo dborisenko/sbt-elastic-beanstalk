@@ -1,12 +1,12 @@
 name := "sbt-elastic-beanstalk"
-version := "0.4.10"
+version := "0.4.11"
 organization := "com.dbrsn"
 organizationName := "OVO Energy"
 scalaVersion := "2.12.3"
 sbtPlugin := true
 
-val awsJavaSdkVersion = "1.11.183"
-val sbtNativePackagerVersion = "1.2.2"
+val awsJavaSdkVersion = "1.11.221"
+val sbtNativePackagerVersion = "1.3.1"
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % sbtNativePackagerVersion)
 

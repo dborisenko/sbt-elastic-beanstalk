@@ -136,7 +136,7 @@ object ElasticBeanstalkPlugin extends AutoPlugin with NativePackagerKeys with Do
       s3ClientBuilder.withRegion(ebsRegion.value)
       val s3Client = s3ClientBuilder.build()
 
-      if (!s3Client.doesBucketExist(bucket)) {
+      if (!s3Client.doesBucketExistV2(bucket)) {
         println(s"Bucket $bucket does not exist. Creating it..")
         s3Client.createBucket(new CreateBucketRequest(bucket))
       }
