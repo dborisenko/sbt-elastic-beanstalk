@@ -1,4 +1,6 @@
 [![Build Status](https://travis-ci.org/dborisenko/sbt-elastic-beanstalk.svg?branch=master)](https://travis-ci.org/dborisenko/sbt-elastic-beanstalk)
+[![Maven Central](https://img.shields.io/maven-central/v/com.dbrsn/sbt-elastic-beanstalk.svg)](https://maven-badges.herokuapp.com/maven-central/com.dbrsn/sbt-elastic-beanstalk)
+[![License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 
 # sbt-elastic-beanstalk
 
@@ -18,7 +20,7 @@ Add the following to you ```project/plugins.sbt``` file
 
 ## Plugin Configuration
 
-See [ElasticBeanstalkPlugin.scala](src/main/scala/com/ovoenergy/sbt/ebs/ElasticBeanstalkPlugin.scala)
+See [ElasticBeanstalkPlugin.scala](src/main/scala/com/dbrsn/sbt/ebs/ElasticBeanstalkPlugin.scala)
 for configuration options and default values.
 
 ## Plugin Tasks
@@ -99,7 +101,7 @@ this via the ```ebsEC2InstanceTypes``` property as follows
     ebsEC2InstanceTypes := Set(T2.Micro, T2.Small, T2.Medium, T2.Large)
 
 > *Note* - the ```ebsContainerMemory``` property will be ignored and predefined
-> memory settings defined in [EC2InstanceTypes](src/main/scala/com/ovoenergy/sbt/ebs/EC2InstanceType.scala)
+> memory settings defined in [EC2InstanceTypes](src/main/scala/com/dbrsn/sbt/ebs/EC2InstanceType.scala)
 > will be used instead.
 
 A dockerrun file will be generated for each instance type you declare with
@@ -158,7 +160,7 @@ t2 small instance.
 >
 > For this reason we must specify half the amount we actually want to allocate.
 >
-> The plugin uses memory values defined in [EC2InstanceTypes](src/main/scala/com/ovoenergy/sbt/ebs/EC2InstanceType.scala)
+> The plugin uses memory values defined in [EC2InstanceTypes](src/main/scala/com/dbrsn/sbt/ebs/EC2InstanceType.scala)
 > which assume that a single application wishes to be allocated all memory
 > available on a given instance.
 >
@@ -177,4 +179,3 @@ See [sbt-elastic-beanstalk](http://ob-go.ovotech.org.uk/go/tab/pipeline/history/
 * [Elastic Beanstalk - Working With Docker](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create_deploy_docker.html)
 * [Managing Docker Memory Shares](https://goldmann.pl/blog/2014/09/11/resource-management-in-docker/#_example_managing_the_memory_shares_of_a_container)
 * [```cgroups``` Memory Configuration](https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Resource_Management_Guide/sec-memory.html)
-* [Example configuration from sbt-release-magic plugin](https://github.com/ovotech/sbt-release-magic/blob/master/src/main/scala/com/ovoenergy/sbt/release/OvoReleasePlugin.scala)

@@ -1,4 +1,4 @@
-package com.ovoenergy.sbt.ebs
+package com.dbrsn.sbt.ebs
 
 import com.typesafe.sbt.packager.docker.DockerAlias
 import sbt._
@@ -69,16 +69,17 @@ object DockerrunFileGenerator {
           |      "$memorySettingField": $memorySettingValue,
           |      "essential": true,
           |      "portMappings": [
-          |""".stripMargin + portMappings.map { case (hostPort, containerPort) =>
-      s"""|        {
-          |          "hostPort": $hostPort,
-          |          "containerPort": $containerPort
-          |        }""".stripMargin
-    }.mkString(",\n") + '\n' +
-      s"""|      ]
-          |    }
-          |  ]
-          |}""".stripMargin
+          |""".stripMargin + portMappings.map {
+        case (hostPort, containerPort) =>
+          s"""|        {
+              |          "hostPort": $hostPort,
+              |          "containerPort": $containerPort
+              |        }""".stripMargin
+      }.mkString(",\n") + "\n" +
+        s"""|      ]
+            |    }
+            |  ]
+            |}""".stripMargin
 
     IO.write(jsonFile, fileContents)
     jsonFile
