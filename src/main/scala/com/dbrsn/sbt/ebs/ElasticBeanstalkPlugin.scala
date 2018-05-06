@@ -4,7 +4,7 @@ import com.amazonaws.regions.Regions
 import com.amazonaws.services.elasticbeanstalk.model._
 import com.amazonaws.services.elasticbeanstalk.{ AWSElasticBeanstalk, AWSElasticBeanstalkClientBuilder }
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
-import com.amazonaws.services.s3.model._
+import com.amazonaws.services.s3.model.CreateBucketRequest
 import com.typesafe.sbt.packager.NativePackagerKeys
 import com.typesafe.sbt.packager.docker.{ DockerKeys, DockerPlugin }
 import sbt.Keys._
