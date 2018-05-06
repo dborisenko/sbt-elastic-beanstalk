@@ -5,8 +5,8 @@ object Dependencies {
   object Versions {
     val scala = "2.12.6"
 
-    val `aws-java-sdk` = "1.11.234"
-    val `sbt-native-packager` = "1.3.2"
+    val `aws-java-sdk` = "1.11.323"
+    val `sbt-native-packager` = "1.3.4"
   }
 
   val `sbt-native-packager` = "com.typesafe.sbt" % "sbt-native-packager" % Versions.`sbt-native-packager`

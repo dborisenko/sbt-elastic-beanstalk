@@ -1,10 +1,10 @@
 package com.dbrsn.sbt.ebs
 
 import com.amazonaws.regions.Regions
-import com.amazonaws.services.elasticbeanstalk.model.{CreateApplicationVersionResult, UpdateEnvironmentResult}
+import com.amazonaws.services.elasticbeanstalk.model.{ CreateApplicationVersionResult, UpdateEnvironmentResult }
 import com.amazonaws.services.s3.model.PutObjectResult
 import com.typesafe.sbt.packager.docker.DockerAlias
-import sbt.{File, SettingKey, TaskKey, settingKey, taskKey}
+import sbt.{ File, SettingKey, TaskKey, settingKey, taskKey }
 
 trait ElasticBeanstalkKeys {
   lazy val ebsDockerrunVersion: SettingKey[Int] = settingKey[Int]("Version of the Dockerrun file (1 or 2)")
